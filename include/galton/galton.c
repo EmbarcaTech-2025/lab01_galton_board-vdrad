@@ -16,31 +16,15 @@ side generate_random_side() {
 }
 
 void board_init() {
-    oled_display_draw_board();
-    // static uint8_t ssd[ssd1306_buffer_length];
-    // // memset(ssd, 0, ssd1306_buffer_length);
+    ball_struct ball = {
+        .x_position = 39,
+        .y_position = 5
+    };
 
-    // // oled_display_draw_line(80,0,80,64); // À esquerda da linha: Galton Board. À direita: Histograma.
-    // draw_board(ssd);
-    // render_on_display(ssd, &frame_area);
-    // oled_display_update();
-    // // oled_display_clear();
-    // oled_display_draw_pixel(40, 40);
-    // oled_display_draw_pixel(81, 81);
-    // oled_display_draw_pixel(82, 82);
-    // oled_display_draw_pixel(83, 83);
-
-    // char *text[10] = {
-    //     "            O            ",
-    //     "X  X   X   X   X   X   X",
-    //     "C",
-    //     "D",
-    //     "E",
-    //     "F",
-    //     "G",
-    //     "H",
-    //     "I",
-    //     "J",
-    // };
-    // oled_display_write(text, count_of(text), 0);
+    oled_display_draw_board(ball.x_position, ball.y_position);
+    while (ball.y_position < 128) {
+        ball.y_position++;
+        oled_display_draw_board(ball.x_position, ball.y_position);
+        sleep_ms(20);
+    }
 }

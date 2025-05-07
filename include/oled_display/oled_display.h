@@ -7,7 +7,8 @@
 void oled_display_init();
 void oled_display_clear();
 void oled_display_write(char *text[], uint8_t n_lines, int16_t initial_y);
-void oled_display_draw_board();
+void oled_display_draw_ball(uint8_t *ssd, int x, int y);
+void oled_display_draw_board(int ball_x, int ball_y);
 void oled_display_validate();
 
 #endif

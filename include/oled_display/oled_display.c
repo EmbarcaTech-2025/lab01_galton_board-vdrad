@@ -61,8 +61,25 @@ void oled_display_draw_pin(uint8_t *ssd, int x, int y) {
     ssd1306_set_pixel(ssd, x+1, y+1, true);
 }
 
+void oled_display_draw_ball(uint8_t *ssd, int x, int y) {
+    ssd1306_set_pixel(ssd, x, y-2, true);
+    ssd1306_set_pixel(ssd, x-1, y-2, true);
+    ssd1306_set_pixel(ssd, x+1, y-2, true);
 
-void oled_display_draw_board() {
+    ssd1306_set_pixel(ssd, x, y+2, true);
+    ssd1306_set_pixel(ssd, x-1, y+2, true);
+    ssd1306_set_pixel(ssd, x+1, y+2, true);
+
+    ssd1306_set_pixel(ssd, x-2, y, true);
+    ssd1306_set_pixel(ssd, x-2, y+1, true);
+    ssd1306_set_pixel(ssd, x-2, y-1, true);
+
+    ssd1306_set_pixel(ssd, x+2, y, true);
+    ssd1306_set_pixel(ssd, x+2, y+1, true);
+    ssd1306_set_pixel(ssd, x+2, y-1, true);
+}
+
+void oled_display_draw_board(int ball_x, int ball_y) {
     // Cria as variáveis para escrita do texto
     static uint8_t ssd[ssd1306_buffer_length];
     memset(ssd, 0, ssd1306_buffer_length);
@@ -84,6 +101,8 @@ void oled_display_draw_board() {
             oled_display_draw_pin(ssd, x_ini - (i-2)*step, y_ini + i*step);
         }
     }
+
+    oled_display_draw_ball(ssd, ball_x, ball_y);
 
     ssd1306_draw_line(ssd, 80, 0, 80, 64, true); // À esquerda da linha: Galton Board. À direita: Histograma.
     render_on_display(ssd, &frame_area);

@@ -11,7 +11,7 @@ typedef enum {
 typedef struct {
     int8_t x_position;
     int8_t y_position;
-} ball;
+} ball_struct;
 
 side generate_random_side();
 void board_init();
