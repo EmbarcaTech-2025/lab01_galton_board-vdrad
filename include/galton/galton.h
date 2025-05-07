@@ -6,5 +6,10 @@ typedef enum {
     RIGHT
 } side;
 
+typedef struct {
+    int8_t x_position;
+    int8_t y_position;
+} ball;
+
 side generate_random_side();
 #endif
