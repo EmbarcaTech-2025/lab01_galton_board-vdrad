@@ -1,14 +1,5 @@
 #include "oled_display.h"
 
-#include <stdio.h>                          // Biblioteca para as funções gerais de pino e UART.
-#include <string.h>                         // Biblioteca para lidar com variáveis do tipo string.
-#include <ctype.h>                          // Biblioteca para lidar com caracteres ASCII.
-#include "pico/stdlib.h"                    // Biblioteca geral com códigos pertinentes à RP2040.
-#include "pico/binary_info.h"               // Biblioteca com algumas informações binárias da RP2040.
-#include "hardware/i2c.h"                   // Biblioteca da RP2040 para comunicação I2C.
-#include "include/oled_display/ssd1306.h"       // Biblioteca para controle do display OLED da BitDogLab.
-#include "include/oled_display/ssd1306_i2c.h"   // Biblioteca para controle do display OLED da BitDogLab.
-
 // Preparar área de renderização para o display (ssd1306_width pixels por ssd1306_n_pages páginas)
 struct render_area frame_area = {
     start_column : 0,
@@ -53,14 +44,6 @@ void oled_display_write(char *text[], uint8_t n_lines, int16_t initial_y) {
     render_on_display(ssd, &frame_area);
 }
 
-void oled_display_draw_pin(uint8_t *ssd, int x, int y) {
-    ssd1306_set_pixel(ssd, x, y, true);
-    ssd1306_set_pixel(ssd, x-1, y-1, true);
-    ssd1306_set_pixel(ssd, x-1, y+1, true);
-    ssd1306_set_pixel(ssd, x+1, y-1, true);
-    ssd1306_set_pixel(ssd, x+1, y+1, true);
-}
-
 void oled_display_draw_ball(uint8_t *ssd, int x, int y) {
     ssd1306_set_pixel(ssd, x, y-2, true);
     ssd1306_set_pixel(ssd, x-1, y-2, true);
@@ -79,32 +62,18 @@ void oled_display_draw_ball(uint8_t *ssd, int x, int y) {
     ssd1306_set_pixel(ssd, x+2, y-1, true);
 }
 
-void oled_display_draw_board(int ball_x, int ball_y) {
+void oled_display_update_board(char board[ssd1306_width][ssd1306_height]) {
     // Cria as variáveis para escrita do texto
     static uint8_t ssd[ssd1306_buffer_length];
     memset(ssd, 0, ssd1306_buffer_length);
 
-    // Parâmetros para desenhar a Galton Board
-    uint8_t x_ini = 39;
-    uint8_t y_ini = 30;
-    uint8_t step = 10;
-
-    // Desenha os pinos da Galton Board
-    for (uint8_t i = 0; i < 4; i++) {
-        oled_display_draw_pin(ssd, x_ini + i*step, y_ini + i*step);
-        oled_display_draw_pin(ssd, x_ini - i*step, y_ini + i*step);
-
-        if (i%2 == 0) {
-            oled_display_draw_pin(ssd, x_ini, y_ini + i*step);
-        } else {
-            oled_display_draw_pin(ssd, x_ini + (i-2)*step, y_ini + i*step);
-            oled_display_draw_pin(ssd, x_ini - (i-2)*step, y_ini + i*step);
+    for (uint8_t i = 0; i < ssd1306_width; i++) {
+        for (uint8_t j = 0; j < ssd1306_height; j++) {
+            if(board[i][j] == '-') ssd1306_set_pixel(ssd, i, j, false);
+            else ssd1306_set_pixel(ssd, i, j, true);
         }
     }
 
-    oled_display_draw_ball(ssd, ball_x, ball_y);
-
-    ssd1306_draw_line(ssd, 80, 0, 80, 64, true); // À esquerda da linha: Galton Board. À direita: Histograma.
     render_on_display(ssd, &frame_area);
 }
 
