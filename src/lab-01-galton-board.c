@@ -2,28 +2,18 @@
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 
-// Biblioteca para uso do SSD1306, display OLED.
-#include "include/oled_display/oled_display.h"
 
-// Definições para uso de comunicação I2C com os pinos do display OLED.
-#define I2C_PORT i2c0
-#define I2C_SDA 14
-#define I2C_SCL 15
+#include "include/oled_display/oled_display.h" // Biblioteca para uso do SSD1306, display OLED.
+#include "include/galton/galton.h"             // Biblioteca com funções relacionadas ao projeto da Galton Board
 
-int main()
-{
+int main() {
     stdio_init_all();
+    oled_display_init();
 
-    // Inicialização da porta I2C em 400Khz.
-    i2c_init(I2C_PORT, 400*1000);
-    
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-
+    board_init();
     while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+
     }
+
+    return 0;
 }
