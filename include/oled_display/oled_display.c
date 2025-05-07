@@ -31,17 +31,6 @@ void oled_display_init() {
     ssd1306_init();
     // Preparar área de renderização para o display (ssd1306_width pixels por ssd1306_n_pages páginas)
     calculate_render_area_buffer_length(&frame_area);
-
-    // Exibe uma mensagem inicial
-    char *text[6] = {
-        "  REMEDICINE",
-        "",
-        "",
-        "Aperte algum",
-        "botao para",
-        "continuar,"
-    };
-    oled_display_write(text, count_of(text), 8);
 }
 
 /**
