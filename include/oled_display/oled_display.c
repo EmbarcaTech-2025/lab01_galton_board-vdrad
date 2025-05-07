@@ -53,6 +53,42 @@ void oled_display_write(char *text[], uint8_t n_lines, int16_t initial_y) {
     render_on_display(ssd, &frame_area);
 }
 
+void oled_display_draw_pin(uint8_t *ssd, int x, int y) {
+    ssd1306_set_pixel(ssd, x, y, true);
+    ssd1306_set_pixel(ssd, x-1, y-1, true);
+    ssd1306_set_pixel(ssd, x-1, y+1, true);
+    ssd1306_set_pixel(ssd, x+1, y-1, true);
+    ssd1306_set_pixel(ssd, x+1, y+1, true);
+}
+
+
+void oled_display_draw_board() {
+    // Cria as variáveis para escrita do texto
+    static uint8_t ssd[ssd1306_buffer_length];
+    memset(ssd, 0, ssd1306_buffer_length);
+
+    // Parâmetros para desenhar a Galton Board
+    uint8_t x_ini = 39;
+    uint8_t y_ini = 30;
+    uint8_t step = 10;
+
+    // Desenha os pinos da Galton Board
+    for (uint8_t i = 0; i < 4; i++) {
+        oled_display_draw_pin(ssd, x_ini + i*step, y_ini + i*step);
+        oled_display_draw_pin(ssd, x_ini - i*step, y_ini + i*step);
+
+        if (i%2 == 0) {
+            oled_display_draw_pin(ssd, x_ini, y_ini + i*step);
+        } else {
+            oled_display_draw_pin(ssd, x_ini + (i-2)*step, y_ini + i*step);
+            oled_display_draw_pin(ssd, x_ini - (i-2)*step, y_ini + i*step);
+        }
+    }
+
+    ssd1306_draw_line(ssd, 80, 0, 80, 64, true); // À esquerda da linha: Galton Board. À direita: Histograma.
+    render_on_display(ssd, &frame_area);
+}
+
 /**
  * Limpa a tela do display OLED.
  */

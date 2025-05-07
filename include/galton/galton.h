@@ -1,6 +1,8 @@
 #ifndef __GALTON_H__ // Caso já tenha sido declarada em algum outro lugar, não declare novamente.
 #define __GALTON_H__
 
+#include <stdint.h>
+
 typedef enum {
     LEFT,
     RIGHT
@@ -12,4 +14,5 @@ typedef struct {
 } ball;
 
 side generate_random_side();
+void board_init();
 #endif
