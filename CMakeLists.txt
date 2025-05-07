@@ -40,6 +40,7 @@ add_executable(lab-01-galton-board
   ./include/pinout.c
   ./include/oled_display/ssd1306_i2c.c
   ./include/oled_display/oled_display.c
+  ./include/galton/galton.c
 )
 
 pico_set_program_name(lab-01-galton-board "lab-01-galton-board")
@@ -51,7 +52,8 @@ pico_enable_stdio_usb(lab-01-galton-board 1)
 
 # Add the standard library to the build
 target_link_libraries(lab-01-galton-board
-        pico_stdlib)
+        pico_stdlib
+        pico_rand)
 
 # Add the standard include files to the build
 target_include_directories(lab-01-galton-board PRIVATE
@@ -62,7 +64,6 @@ target_include_directories(lab-01-galton-board PRIVATE
 # Add any user requested libraries
 target_link_libraries(lab-01-galton-board 
         hardware_i2c
-        
         )
 
 pico_add_extra_outputs(lab-01-galton-board)
