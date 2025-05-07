@@ -6,8 +6,8 @@
 #include "pico/stdlib.h"                    // Biblioteca geral com códigos pertinentes à RP2040.
 #include "pico/binary_info.h"               // Biblioteca com algumas informações binárias da RP2040.
 #include "hardware/i2c.h"                   // Biblioteca da RP2040 para comunicação I2C.
-#include "inc/oled_display/ssd1306.h"       // Biblioteca para controle do display OLED da BitDogLab.
-#include "inc/oled_display/ssd1306_i2c.h"   // Biblioteca para controle do display OLED da BitDogLab.
+#include "include/oled_display/ssd1306.h"       // Biblioteca para controle do display OLED da BitDogLab.
+#include "include/oled_display/ssd1306_i2c.h"   // Biblioteca para controle do display OLED da BitDogLab.
 
 // Preparar área de renderização para o display (ssd1306_width pixels por ssd1306_n_pages páginas)
 struct render_area frame_area = {

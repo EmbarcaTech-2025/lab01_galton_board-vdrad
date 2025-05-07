@@ -37,7 +37,9 @@ pico_sdk_init()
 
 add_executable(lab-01-galton-board
   ./src/lab-01-galton-board.c 
-  ./include/ssd1306_i2c.c
+  ./include/pinout.c
+  ./include/oled_display/ssd1306_i2c.c
+  ./include/oled_display/oled_display.c
 )
 
 pico_set_program_name(lab-01-galton-board "lab-01-galton-board")

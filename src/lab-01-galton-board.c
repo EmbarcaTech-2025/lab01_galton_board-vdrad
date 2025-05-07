@@ -3,7 +3,7 @@
 #include "hardware/i2c.h"
 
 // Biblioteca para uso do SSD1306, display OLED.
-#include "include/ssd1306.h"
+#include "include/oled_display/oled_display.h"
 
 // Definições para uso de comunicação I2C com os pinos do display OLED.
 #define I2C_PORT i2c0
