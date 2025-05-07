@@ -107,7 +107,7 @@ void update_board_matrix(ball_struct *ball) {
         side random_side = generate_random_side();
 
         // sort a random integer between 0 and 10 to be the horizontal shift
-        int8_t horizontal_shift = round(((float)get_rand_32()/UINT32_MAX)*10.0);
+        int8_t horizontal_shift = round(1+((float)get_rand_32()/UINT32_MAX)*10.0);
         if (random_side == LEFT) horizontal_shift *= -1;
 
         ball->x_position += horizontal_shift;
