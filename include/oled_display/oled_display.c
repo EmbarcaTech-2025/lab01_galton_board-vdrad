@@ -62,7 +62,7 @@ void oled_display_draw_ball(uint8_t *ssd, int x, int y) {
     ssd1306_set_pixel(ssd, x+2, y-1, true);
 }
 
-void oled_display_update_board(char board[ssd1306_width][ssd1306_height]) {
+void oled_display_update_board(char board[ssd1306_width][ssd1306_height], uint16_t ball_count) {
     // Cria as variáveis para escrita do texto
     static uint8_t ssd[ssd1306_buffer_length];
     memset(ssd, 0, ssd1306_buffer_length);
@@ -73,6 +73,9 @@ void oled_display_update_board(char board[ssd1306_width][ssd1306_height]) {
             else ssd1306_set_pixel(ssd, i, j, true);
         }
     }
+    char ball_count_str[6]; // Enough to hold "65535\0"
+    snprintf(ball_count_str, sizeof(ball_count_str), "%u", ball_count);
+    ssd1306_draw_string(ssd, 0, 0, ball_count_str);
 
     render_on_display(ssd, &frame_area);
 }

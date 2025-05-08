@@ -16,7 +16,7 @@ void oled_display_clear();
 void oled_display_write(char *text[], uint8_t n_lines, int16_t initial_y);
 void oled_display_draw_ball(uint8_t *ssd, int x, int y);
 void oled_display_draw_board(int ball_x, int ball_y);
-void oled_display_update_board(char board[ssd1306_width][ssd1306_height]);
+void oled_display_update_board(char board[ssd1306_width][ssd1306_height], uint16_t ball_count);
 void oled_display_validate();
 
 #endif
