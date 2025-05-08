@@ -1,15 +1,14 @@
 #include "galton.h"
-#include "pico/rand.h"  // Biblioteca contendo função para gerar números aleatórios
-#include "include/oled_display/oled_display.h" // Biblioteca para uso do SSD1306, display OLED.
-#include "include/oled_display/ssd1306_i2c.h" // Biblioteca para uso do SSD1306, display OLED.
+#include "pico/rand.h"  // Library for generating random numbers
+#include "include/oled_display/oled_display.h" // Library for SSD1306 OLED display
+#include "include/oled_display/ssd1306_i2c.h" // Library for SSD1306 OLED display
 #include <stdio.h>
 #include <math.h>
 
 char board[DISPLAY_WIDTH][DISPLAY_HEIGHT]; // '-' means empty space; 'b' means ball position; 'p' means pin position.
-const uint8_t board_center   = 39;
-const uint8_t lines          = 4;
-uint8_t last_line_x_position[4];
-
+const uint8_t board_center   = 39; // Center position of the board
+const uint8_t lines          = 4;  // Number of lines of pins
+uint8_t last_line_x_position[4];   // Stores the x-coordinates of the last line of pins
 
 /**
  * @brief Generates a random decision for the Galton board simulation.
@@ -63,10 +62,9 @@ void draw_pin(int x, int y) {
  * It ensures that the pins are drawn symmetrically and within the board boundaries.
  */
 void generate_board_pins() {
-    // Board parameters
-    const uint8_t initial_x   = board_center;
-    const uint8_t initial_y   = 25;
-    const uint8_t gap         = 10;
+    const uint8_t initial_x   = board_center; // Initial x-coordinate for the pins
+    const uint8_t initial_y   = 25;           // Initial y-coordinate for the pins
+    const uint8_t gap         = 10;           // Gap between pins
 
     // Draw pins on the display
     for (uint8_t i = 0; i < lines; i++) {
@@ -75,11 +73,19 @@ void generate_board_pins() {
         }
     }
 
+    // Store the x-coordinates of the last line of pins
     for (uint8_t i = 0; i < lines; i++) {
         last_line_x_position[i] = (initial_x - (lines - 1) * gap) + i*2*gap;
     }
 }
 
+/**
+ * @brief Draws a ball on the Galton board display.
+ * This function updates the board matrix to represent the ball's position.
+ * It also checks for collisions with pins and updates the ball's collision status.
+ * 
+ * @param ball Pointer to the ball structure containing its position and collision status.
+ */
 void draw_ball(ball_struct *ball) {
     if ((ball->x_position-2 < 0) || (ball->y_position-2 < 0) || (ball->x_position+2 >= DISPLAY_WIDTH) || (ball->y_position+2 >= DISPLAY_HEIGHT)) return;
     ball->collision = false;
@@ -101,10 +107,19 @@ void draw_ball(ball_struct *ball) {
     }
 }
 
+/**
+ * @brief Calculates and updates the histogram for the Galton board simulation.
+ * This function computes the distribution of balls in different zones and updates
+ * the board matrix to display the histogram.
+ * 
+ * @param ball Array of pointers to ball structures.
+ * @param ball_count Total number of balls dropped.
+ */
 void calculate_histogram(ball_struct *ball[NUMBER_OF_BALLS], uint16_t ball_count) {
-    uint16_t zone_counts[5]     = {0,  0,  0,  0,   0};
-    uint8_t zone_positions[5]   = {73, 84, 95, 106, 117};
+    uint16_t zone_counts[5]     = {0,  0,  0,  0,   0}; // Counts for each zone
+    uint8_t zone_positions[5]   = {73, 84, 95, 106, 117}; // x-coordinates for histogram zones
 
+    // Count balls in each zone
     for (uint8_t i = 0; i < NUMBER_OF_BALLS; i++) {
         switch(ball[i]->drop_location) {
             case ZONE_1:
@@ -127,12 +142,11 @@ void calculate_histogram(ball_struct *ball[NUMBER_OF_BALLS], uint16_t ball_count
         }
     }
 
+    // Update the histogram on the board
     for (uint8_t i = 0; i < 5; i++) {
         if (ball_count > 0) {
-            // zone_counts[i] = 30;
-            zone_counts[i] = (uint16_t)round((float)DISPLAY_HEIGHT * (float)zone_counts[i] / (float)ball_count);
+            zone_counts[i] = (uint16_t)round((float)(DISPLAY_HEIGHT + 40) * (float)zone_counts[i] / (float)ball_count);
             printf("Zone Count [%d]: %d \n", i, zone_counts[i]);
-            // zone_counts[i] = (uint16_t)(DISPLAY_HEIGHT * round(((float)zone_counts[i]/ball_count)));
 
             for (uint8_t k = 127; k > 127 - zone_counts[i]; k--) {
                 for (uint8_t j = zone_positions[i]; j < zone_positions[i] + 10; j++) {
@@ -144,6 +158,14 @@ void calculate_histogram(ball_struct *ball[NUMBER_OF_BALLS], uint16_t ball_count
     printf("\n\n");
 }
 
+/**
+ * @brief Updates the Galton board matrix with the current state of the simulation.
+ * This function clears the board, generates pins, updates ball positions, and calculates
+ * the histogram based on the ball distribution.
+ * 
+ * @param ball Array of pointers to ball structures.
+ * @param ball_count Pointer to the total number of balls dropped.
+ */
 void update_board_matrix(ball_struct *ball[NUMBER_OF_BALLS], uint16_t *ball_count) {
     clear_board();
     generate_board_pins();
@@ -153,7 +175,7 @@ void update_board_matrix(ball_struct *ball[NUMBER_OF_BALLS], uint16_t *ball_coun
         if (ball[i]->collision) {
             side random_side = generate_random_side();
             
-            // sort a random integer between 0 and 10 to be the horizontal shift
+            // Sort a random integer between 0 and 10 to be the horizontal shift
             int8_t horizontal_shift = 5 + round(((float)get_rand_32()/UINT32_MAX)*10.0);
             if (random_side == LEFT) horizontal_shift *= -1;
             
@@ -168,6 +190,7 @@ void update_board_matrix(ball_struct *ball[NUMBER_OF_BALLS], uint16_t *ball_coun
             continue;
         }
         
+        // Determine the drop location based on x_position
         if (ball[i]->x_position < last_line_x_position[0]) ball[i]->drop_location = ZONE_1;
         if (ball[i]->x_position >= last_line_x_position[0] && ball[i]->x_position < last_line_x_position[1]) ball[i]->drop_location = ZONE_2;
         if (ball[i]->x_position >= last_line_x_position[1] && ball[i]->x_position < last_line_x_position[2]) ball[i]->drop_location = ZONE_3;
@@ -179,10 +202,16 @@ void update_board_matrix(ball_struct *ball[NUMBER_OF_BALLS], uint16_t *ball_coun
     oled_display_update_board(board, (*ball_count));
 }
 
-
+/**
+ * @brief Initializes the Galton board simulation.
+ * This function sets up the initial state of the balls and continuously updates
+ * the board matrix to simulate the Galton board.
+ */
 void board_init() {
-    ball_struct balls[NUMBER_OF_BALLS];
-    ball_struct *ball_pointers[NUMBER_OF_BALLS];
+    ball_struct balls[NUMBER_OF_BALLS]; // Array of ball structures
+    ball_struct *ball_pointers[NUMBER_OF_BALLS]; // Array of pointers to ball structures
+
+    // Initialize balls with starting positions
     for (uint8_t i = 0; i < NUMBER_OF_BALLS; i++) {
         balls[i].x_position = board_center;
         balls[i].y_position = 5 - 15*i;
@@ -195,6 +224,5 @@ void board_init() {
     while (true) {
         uint16_t ball_count = 0;
         update_board_matrix(ball_pointers, &ball_count);
-        // printf("Ball Count: %d \n", ball_count);
     }
 }
