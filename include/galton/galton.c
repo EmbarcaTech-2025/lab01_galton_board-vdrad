@@ -101,6 +101,49 @@ void draw_ball(ball_struct *ball) {
     }
 }
 
+void calculate_histogram(ball_struct *ball[NUMBER_OF_BALLS], uint16_t ball_count) {
+    uint16_t zone_counts[5]     = {0,  0,  0,  0,   0};
+    uint8_t zone_positions[5]   = {73, 84, 95, 106, 117};
+
+    for (uint8_t i = 0; i < NUMBER_OF_BALLS; i++) {
+        switch(ball[i]->drop_location) {
+            case ZONE_1:
+                zone_counts[0]++;
+                break;
+            case ZONE_2:
+                zone_counts[1]++;
+                break;
+            case ZONE_3:
+                zone_counts[2]++;
+                break;
+            case ZONE_4:
+                zone_counts[3]++;
+                break;
+            case ZONE_5:
+                zone_counts[4]++;
+                break;
+            default: 
+                break;
+        }
+    }
+
+    for (uint8_t i = 0; i < 5; i++) {
+        if (ball_count > 0) {
+            // zone_counts[i] = 30;
+            zone_counts[i] = (uint16_t)round((float)DISPLAY_HEIGHT * (float)zone_counts[i] / (float)ball_count);
+            printf("Zone Count [%d]: %d \n", i, zone_counts[i]);
+            // zone_counts[i] = (uint16_t)(DISPLAY_HEIGHT * round(((float)zone_counts[i]/ball_count)));
+
+            for (uint8_t k = 127; k > 127 - zone_counts[i]; k--) {
+                for (uint8_t j = zone_positions[i]; j < zone_positions[i] + 10; j++) {
+                    board[j][k] = 'h';
+                }   
+            }
+        }
+    }
+    printf("\n\n");
+}
+
 void update_board_matrix(ball_struct *ball[NUMBER_OF_BALLS], uint16_t *ball_count) {
     clear_board();
     generate_board_pins();
@@ -132,32 +175,19 @@ void update_board_matrix(ball_struct *ball[NUMBER_OF_BALLS], uint16_t *ball_coun
         if (ball[i]->x_position >= last_line_x_position[3] && ball[i]->x_position < last_line_x_position[4]) ball[i]->drop_location = ZONE_5;
         (*ball_count)++;
     }
+    calculate_histogram(ball, (*ball_count));
     oled_display_update_board(board, (*ball_count));
 }
 
-void calculate_histogram(ball_struct *ball[NUMBER_OF_BALLS]) {
-    for (uint8_t i = 0; i < NUMBER_OF_BALLS; i++) {  
-        if (ball[i]->drop_location) {
-            ball[i]->finished_moving = true;
-        }
-    }
-}
 
 void board_init() {
-    ball_struct ball = {
-        .x_position     = board_center,
-        .y_position     = 5,
-        .collision      = false,
-        .drop_location  = NONE
-    };
-
     ball_struct balls[NUMBER_OF_BALLS];
     ball_struct *ball_pointers[NUMBER_OF_BALLS];
     for (uint8_t i = 0; i < NUMBER_OF_BALLS; i++) {
         balls[i].x_position = board_center;
         balls[i].y_position = 5 - 15*i;
-        balls[i].collision = false;
         balls[i].drop_location = NONE;
+        balls[i].collision = false;
         ball_pointers[i] = &balls[i];
     }
 
@@ -165,12 +195,6 @@ void board_init() {
     while (true) {
         uint16_t ball_count = 0;
         update_board_matrix(ball_pointers, &ball_count);
-        calculate_histogram(ball_pointers);
-        printf("Ball Count: %d \n", ball_count);
-        // sleep_ms(200);
-        // if (balls[2].drop_location) {
-        //     reset_balls(ball_pointers);
-        //     printf("Drop Zone: %d \n", balls[2].drop_location);
-        // }
+        // printf("Ball Count: %d \n", ball_count);
     }
 }

@@ -73,6 +73,7 @@ void oled_display_update_board(char board[ssd1306_width][ssd1306_height], uint16
             else ssd1306_set_pixel(ssd, i, j, true);
         }
     }
+    
     char ball_count_str[6]; // Enough to hold "65535\0"
     snprintf(ball_count_str, sizeof(ball_count_str), "%u", ball_count);
     ssd1306_draw_string(ssd, 0, 0, ball_count_str);

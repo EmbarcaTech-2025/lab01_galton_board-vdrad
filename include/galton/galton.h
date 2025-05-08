@@ -27,7 +27,6 @@ typedef struct {
     int16_t y_position;
     drop_zone drop_location;
     bool collision;
-    bool finished_moving;
 } ball_struct;
 
 side generate_random_side();
