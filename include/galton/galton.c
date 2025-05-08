@@ -80,9 +80,9 @@ void generate_board_pins() {
     }
 }
 
-void draw_ball(ball_struct *ball, bool *collision) {
+void draw_ball(ball_struct *ball) {
     if ((ball->x_position-2 < 0) || (ball->y_position-2 < 0) || (ball->x_position+2 >= DISPLAY_WIDTH) || (ball->y_position+2 >= DISPLAY_HEIGHT)) return;
-    *collision = false;
+    ball->collision = false;
 
     for (int8_t i = -1; i < 2; i++) {
         if (
@@ -91,7 +91,7 @@ void draw_ball(ball_struct *ball, bool *collision) {
             board[ball->x_position-2][ball->y_position+i] == 'p' ||
             board[ball->x_position+2][ball->y_position+i] == 'p' 
         ) {
-            *collision = true;
+            ball->collision = true;
         } else {
             board[ball->x_position+i][ball->y_position-2] = 'b';
             board[ball->x_position+i][ball->y_position+2] = 'b';
@@ -101,63 +101,76 @@ void draw_ball(ball_struct *ball, bool *collision) {
     }
 }
 
-drop_zone update_board_matrix(ball_struct *ball) {
-    bool collision = false;
-
+void update_board_matrix(ball_struct *ball[NUMBER_OF_BALLS], uint16_t *ball_count) {
     clear_board();
     generate_board_pins();
-    draw_ball(ball, &collision);
-    oled_display_update_board(board);
-
-    if (collision) {
-        side random_side = generate_random_side();
-
-        // sort a random integer between 0 and 10 to be the horizontal shift
-        int8_t horizontal_shift = 5 + round(((float)get_rand_32()/UINT32_MAX)*5.0);
-        if (random_side == LEFT) horizontal_shift *= -1;
-
-        ball->x_position += horizontal_shift;
-        return NONE;
+    
+    for (uint8_t i = 0; i < NUMBER_OF_BALLS; i++) {   
+        draw_ball(ball[i]);
+        if (ball[i]->collision) {
+            side random_side = generate_random_side();
+            
+            // sort a random integer between 0 and 10 to be the horizontal shift
+            int8_t horizontal_shift = 5 + round(((float)get_rand_32()/UINT32_MAX)*10.0);
+            if (random_side == LEFT) horizontal_shift *= -1;
+            
+            ball[i]->x_position += horizontal_shift;
+            ball[i]->drop_location = NONE;
+            continue;
+        }
+        
+        if (ball[i]->y_position < DISPLAY_HEIGHT - 1) {
+            ball[i]->y_position++;
+            ball[i]->drop_location = NONE;
+            continue;
+        }
+        
+        if (ball[i]->x_position < last_line_x_position[0]) ball[i]->drop_location = ZONE_1;
+        if (ball[i]->x_position >= last_line_x_position[0] && ball[i]->x_position < last_line_x_position[1]) ball[i]->drop_location = ZONE_2;
+        if (ball[i]->x_position >= last_line_x_position[1] && ball[i]->x_position < last_line_x_position[2]) ball[i]->drop_location = ZONE_3;
+        if (ball[i]->x_position >= last_line_x_position[2] && ball[i]->x_position < last_line_x_position[3]) ball[i]->drop_location = ZONE_4;
+        if (ball[i]->x_position >= last_line_x_position[3] && ball[i]->x_position < last_line_x_position[4]) ball[i]->drop_location = ZONE_5;
+        (*ball_count)++;
     }
+    oled_display_update_board(board, (*ball_count));
+}
 
-    if (ball->y_position < DISPLAY_HEIGHT - 1) {
-        ball->y_position++;
-        return NONE;
+void calculate_histogram(ball_struct *ball[NUMBER_OF_BALLS]) {
+    for (uint8_t i = 0; i < NUMBER_OF_BALLS; i++) {  
+        if (ball[i]->drop_location) {
+            ball[i]->finished_moving = true;
+        }
     }
-
-    if (ball->x_position < last_line_x_position[0]) return ZONE_1;
-    if (ball->x_position >= last_line_x_position[0] && ball->x_position < last_line_x_position[1]) return ZONE_2;
-    if (ball->x_position >= last_line_x_position[1] && ball->x_position < last_line_x_position[2]) return ZONE_3;
-    if (ball->x_position >= last_line_x_position[2] && ball->x_position < last_line_x_position[3]) return ZONE_4;
-    if (ball->x_position >= last_line_x_position[3] && ball->x_position < last_line_x_position[4]) return ZONE_5;
 }
 
 void board_init() {
     ball_struct ball = {
         .x_position     = board_center,
         .y_position     = 5,
+        .collision      = false,
         .drop_location  = NONE
     };
 
-    clear_board();
-    while (true) {
-        drop_zone current_drop_zone = update_board_matrix(&ball);
-        if (current_drop_zone) {
-            ball.y_position = 5;
-            ball.x_position = board_center;
-            printf("Drop Zone: %d \n", current_drop_zone);
-        }
-
-        // while (ball.y_position < DISPLAY_HEIGHT - 1) {
-        //     // printf("Ball position Y: %d \n", ball.y_position);
-        //     // ball.y_position++;
-        //     drop_zone current_drop_zone = update_board_matrix(&ball);
-        //     if (current_drop_zone) printf("Drop Zone: %d \n", current_drop_zone);
-        //     sleep_ms(20);
-        // }
-
-        // ball.y_position = 5;
-        // ball.x_position = board_center;
+    ball_struct balls[NUMBER_OF_BALLS];
+    ball_struct *ball_pointers[NUMBER_OF_BALLS];
+    for (uint8_t i = 0; i < NUMBER_OF_BALLS; i++) {
+        balls[i].x_position = board_center;
+        balls[i].y_position = 5 - 15*i;
+        balls[i].collision = false;
+        balls[i].drop_location = NONE;
+        ball_pointers[i] = &balls[i];
     }
 
+    clear_board();
+    while (true) {
+        uint16_t ball_count = 0;
+        update_board_matrix(ball_pointers, &ball_count);
+        calculate_histogram(ball_pointers);
+        printf("Ball Count: %d \n", ball_count);
+        // sleep_ms(200);
+        // if (balls[2].drop_location) {
+        //     reset_balls(ball_pointers);
+        //     printf("Drop Zone: %d \n", balls[2].drop_location);
+        // }
+    }
 }

@@ -2,9 +2,12 @@
 #define __GALTON_H__
 
 #include <stdint.h>
+#include "pico/stdlib.h"
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
+
+#define NUMBER_OF_BALLS 200
 typedef enum {
     LEFT,
     RIGHT
@@ -20,9 +23,11 @@ typedef enum {
 } drop_zone;
 
 typedef struct {
-    int8_t x_position;
-    int8_t y_position;
+    int16_t x_position;
+    int16_t y_position;
     drop_zone drop_location;
+    bool collision;
+    bool finished_moving;
 } ball_struct;
 
 side generate_random_side();
