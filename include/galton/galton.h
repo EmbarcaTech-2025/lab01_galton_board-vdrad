@@ -10,9 +10,19 @@ typedef enum {
     RIGHT
 } side;
 
+typedef enum {
+    NONE,
+    ZONE_1,
+    ZONE_2,
+    ZONE_3,
+    ZONE_4,
+    ZONE_5,
+} drop_zone;
+
 typedef struct {
     int8_t x_position;
     int8_t y_position;
+    drop_zone drop_location;
 } ball_struct;
 
 side generate_random_side();

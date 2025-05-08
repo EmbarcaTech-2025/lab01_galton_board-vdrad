@@ -7,6 +7,9 @@
 
 char board[DISPLAY_WIDTH][DISPLAY_HEIGHT]; // '-' means empty space; 'b' means ball position; 'p' means pin position.
 const uint8_t board_center   = 39;
+const uint8_t lines          = 4;
+uint8_t last_line_x_position[4];
+
 
 /**
  * @brief Generates a random decision for the Galton board simulation.
@@ -64,13 +67,16 @@ void generate_board_pins() {
     const uint8_t initial_x   = board_center;
     const uint8_t initial_y   = 25;
     const uint8_t gap         = 10;
-    const uint8_t lines       = 4;
 
     // Draw pins on the display
     for (uint8_t i = 0; i < lines; i++) {
         for (int8_t j = -i; j <= i; j += 2) {
             draw_pin(initial_x + j*gap, initial_y + i*gap);
         }
+    }
+
+    for (uint8_t i = 0; i < lines; i++) {
+        last_line_x_position[i] = (initial_x - (lines - 1) * gap) + i*2*gap;
     }
 }
 
@@ -95,7 +101,7 @@ void draw_ball(ball_struct *ball, bool *collision) {
     }
 }
 
-void update_board_matrix(ball_struct *ball) {
+drop_zone update_board_matrix(ball_struct *ball) {
     bool collision = false;
 
     clear_board();
@@ -107,25 +113,51 @@ void update_board_matrix(ball_struct *ball) {
         side random_side = generate_random_side();
 
         // sort a random integer between 0 and 10 to be the horizontal shift
-        int8_t horizontal_shift = round(1+((float)get_rand_32()/UINT32_MAX)*10.0);
+        int8_t horizontal_shift = 5 + round(((float)get_rand_32()/UINT32_MAX)*5.0);
         if (random_side == LEFT) horizontal_shift *= -1;
 
         ball->x_position += horizontal_shift;
-        return;
+        return NONE;
     }
-    ball->y_position++;
+
+    if (ball->y_position < DISPLAY_HEIGHT - 1) {
+        ball->y_position++;
+        return NONE;
+    }
+
+    if (ball->x_position < last_line_x_position[0]) return ZONE_1;
+    if (ball->x_position >= last_line_x_position[0] && ball->x_position < last_line_x_position[1]) return ZONE_2;
+    if (ball->x_position >= last_line_x_position[1] && ball->x_position < last_line_x_position[2]) return ZONE_3;
+    if (ball->x_position >= last_line_x_position[2] && ball->x_position < last_line_x_position[3]) return ZONE_4;
+    if (ball->x_position >= last_line_x_position[3] && ball->x_position < last_line_x_position[4]) return ZONE_5;
 }
 
 void board_init() {
     ball_struct ball = {
-        .x_position = board_center,
-        .y_position = 5
+        .x_position     = board_center,
+        .y_position     = 5,
+        .drop_location  = NONE
     };
 
     clear_board();
-    while (ball.y_position < 128) {
-        // ball.y_position++;
-        update_board_matrix(&ball);
-        sleep_ms(20);
+    while (true) {
+        drop_zone current_drop_zone = update_board_matrix(&ball);
+        if (current_drop_zone) {
+            ball.y_position = 5;
+            ball.x_position = board_center;
+            printf("Drop Zone: %d \n", current_drop_zone);
+        }
+
+        // while (ball.y_position < DISPLAY_HEIGHT - 1) {
+        //     // printf("Ball position Y: %d \n", ball.y_position);
+        //     // ball.y_position++;
+        //     drop_zone current_drop_zone = update_board_matrix(&ball);
+        //     if (current_drop_zone) printf("Drop Zone: %d \n", current_drop_zone);
+        //     sleep_ms(20);
+        // }
+
+        // ball.y_position = 5;
+        // ball.x_position = board_center;
     }
+
 }
